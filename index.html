@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IT Terminology Master</title>
+    <style>
+        :root {
+            --bg: #f0f2f5; --card: #ffffff; --text: #1c1c1e;
+            --blue: #1cb0f6; --green: #58cc02; --orange: #ff9600; --sub: #afafaf; --border: #e5e5e5;
+        }
+        body.dark {
+            --bg: #131f24; --card: #1c2e36; --text: #f5f5f7; --border: #3c4c52;
+        }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; min-height: 100vh; }
+        
+        nav { padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; background: var(--card); border-bottom: 2px solid var(--border); position: sticky; top:0; z-index:100; }
+        .btn-home { padding: 8px 15px; border-radius: 12px; border: 2px solid var(--border); background: none; color: var(--text); font-size: 12px; font-weight: 700; cursor: pointer; }
+
+        .screen { display: none; width: 100%; min-height: calc(100vh - 60px); flex-direction: column; align-items: center; padding: 20px; box-sizing: border-box; }
+        .screen.active { display: flex; }
+
+        .menu-title { font-size: 1.6rem; font-weight: 900; color: var(--blue); margin: 30px 0; text-align: center; line-height: 1.2; }
+        .btn-menu { 
+            width: 100%; max-width: 320px; padding: 25px; margin: 12px 0; 
+            background: var(--card); border: 2px solid var(--border); border-bottom: 6px solid var(--border);
+            border-radius: 20px; font-size: 1.2rem; font-weight: 800; color: var(--text); cursor: pointer; 
+        }
+        .btn-menu:active { transform: translateY(3px); border-bottom-width: 2px; }
+        .c-basic { border-color: var(--blue); color: var(--blue); }
+        .c-it-v { border-color: var(--green); color: var(--green); }
+        .c-it-a { border-color: var(--orange); color: var(--orange); }
+
+        .card { 
+            width: 100%; max-width: 400px; background: var(--card); border-radius: 28px; 
+            border: 2px solid var(--border); border-bottom: 8px solid var(--border); 
+            padding: 30px; box-sizing: border-box; margin-bottom: 25px; text-align: center;
+        }
+        .card-kanji { font-size: 3.5rem; font-weight: 900; margin: 10px 0; }
+        .card-yomi { font-size: 1.5rem; color: var(--sub); margin-bottom: 10px; }
+        .card-eng { font-size: 1.2rem; font-weight: 800; color: var(--blue); background: rgba(28, 176, 246, 0.1); padding: 10px; border-radius: 12px; display: inline-block; margin-bottom: 20px; }
+        
+        .example-box { text-align: left; background: var(--bg); padding: 15px; border-radius: 15px; border-left: 5px solid var(--blue); margin-top: 10px; }
+        .example-label { font-size: 0.7rem; font-weight: 800; color: var(--sub); text-transform: uppercase; margin-bottom: 5px; }
+        .example-text { font-size: 1rem; line-height: 1.5; font-weight: 600; }
+
+        .controls { display: flex; gap: 20px; width: 100%; max-width: 400px; }
+        .btn-ctrl { flex: 1; padding: 20px; border-radius: 20px; border: none; background: var(--blue); color: white; font-weight: 800; font-size: 1.1rem; cursor: pointer; box-shadow: 0 5px 0 #1899d6; }
+        .btn-ctrl:active { transform: translateY(3px); box-shadow: 0 2px 0 #1899d6; }
+        
+        #counter { margin-top: 15px; font-weight: 800; color: var(--sub); }
+    </style>
+</head>
+<body>
+
+<nav>
+    <button class="btn-home" onclick="location.reload()">HOME</button>
+    <div id="status" style="font-size: 10px; font-weight: 900;">READY</div>
+    <button class="btn-home" onclick="document.body.classList.toggle('dark')">DARK MODE</button>
+</nav>
+
+<div id="scr-top" class="screen active">
+    <h1 class="menu-title">IT JAPANESE<br>LEARNING</h1>
+    <button class="btn-menu c-basic" id="btn-basic" onclick="startMode('basic')" disabled>基本動詞100 (Loading...)</button>
+    <button class="btn-menu c-it-v" id="btn-itv" onclick="startMode('itv')" disabled>IT動詞100 (Loading...)</button>
+    <button class="btn-menu c-it-a" id="btn-ita" onclick="startMode('ita')" disabled>IT形容詞 (Loading...)</button>
+</div>
+
+<div id="scr-card" class="screen">
+    <div class="card">
+        <div onclick="speak()" style="cursor:pointer; font-size: 2.5rem; margin-bottom: 15px;">🔊</div>
+        <div class="card-yomi" id="c-yomi">--</div>
+        <h2 class="card-kanji" id="c-kanji">--</h2>
+        <div class="card-eng" id="c-eng">--</div>
+        
+        <div class="example-box">
+            <div class="example-label">Example Sentence</div>
+            <div class="example-text" id="c-ex">--</div>
+        </div>
+    </div>
+    <div class="controls">
+        <button class="btn-ctrl" onclick="prev()">PREV</button>
+        <button class="btn-ctrl" onclick="next()">NEXT</button>
+    </div>
+    <div id="counter">0 / 0</div>
+</div>
+
+<script>
+    // --- 【重要】スプレッドシートのCSVリンクをここに貼り付けてください ---
+    const URL_BASIC = 'ここに「基本動詞100」のCSVリンク';
+    const URL_ITV   = 'ここに「IT動詞100」のCSVリンク';
+    const URL_ITA   = 'ここに「IT形容詞」のCSVリンク';
+    // ---------------------------------------------------------------
+
+    let dataBasic = [], dataITV = [], dataITA = [];
+    let currentList = [], currentIndex = 0;
+
+    // CSVパース関数
+    async function loadCSV(url) {
+        const res = await fetch(url + '&v=' + Date.now());
+        const text = await res.text();
+        const rows = [];
+        text.split(/\r?\n/).forEach(line => {
+            if (!line.trim()) return;
+            const cells = []; let cell = "", inQ = false;
+            for (let char of line) {
+                if (char === '"') inQ = !inQ;
+                else if (char === ',' && !inQ) { cells.push(cell.trim()); cell = ""; }
+                else cell += char;
+            }
+            cells.push(cell.trim());
+            rows.push(cells);
+        });
+        return rows.slice(1).filter(r => r[0]); // ヘッダーを除外
+    }
+
+    // 初期化
+    async function init() {
+        try {
+            dataBasic = await loadCSV(URL_BASIC);
+            dataITV   = await loadCSV(URL_ITV);
+            dataITA   = await loadCSV(URL_ITA);
+
+            updateBtn('btn-basic', `基本動詞100 (${dataBasic.length})`);
+            updateBtn('btn-itv', `IT動詞100 (${dataITV.length})`);
+            updateBtn('btn-ita', `IT形容詞 (${dataITA.length})`);
+            document.getElementById('status').innerText = "SYNCED";
+        } catch (e) {
+            document.getElementById('status').innerText = "ERROR: CHECK LINKS";
+        }
+    }
+
+    function updateBtn(id, text) {
+        const b = document.getElementById(id);
+        b.disabled = false;
+        b.innerText = text;
+    }
+
+    function startMode(mode) {
+        currentIndex = 0;
+        if (mode === 'basic') currentList = dataBasic;
+        if (mode === 'itv')   currentList = dataITV;
+        if (mode === 'ita')   currentList = dataITA;
+        
+        updateCard();
+        document.getElementById('scr-top').classList.remove('active');
+        document.getElementById('scr-card').classList.add('active');
+    }
+
+    function updateCard() {
+        const d = currentList[currentIndex];
+        // 列名: 日本語(0), ひらがな(1), 英語(2), 例文(3)
+        document.getElementById('c-kanji').innerText = d[0] || "--";
+        document.getElementById('c-yomi').innerText  = d[1] || "--";
+        document.getElementById('c-eng').innerText   = d[2] || "--";
+        document.getElementById('c-ex').innerText    = d[3] || "例文はありません。";
+        
+        document.getElementById('counter').innerText = `${currentIndex + 1} / ${currentList.length}`;
+        window.currentVoice = d[1]; // ひらがなを音声に設定
+    }
+
+    function next() { if (currentIndex < currentList.length - 1) { currentIndex++; updateCard(); } }
+    function prev() { if (currentIndex > 0) { currentIndex--; updateCard(); } }
+
+    function speak() {
+        if (!window.currentVoice) return;
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(window.currentVoice);
+        u.lang = 'ja-JP';
+        u.rate = 0.9; // 少しゆっくり
+        window.speechSynthesis.speak(u);
+    }
+
+    init();
+</script>
+</body>
+</html>
