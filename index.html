@@ -11,38 +11,47 @@
             --blue: #1cb0f6; --green: #58cc02; --orange: #ff9600;
             --sub: #afafaf; --border: #e5e5e5;
         }
-        /* [修正3] data-theme を html 要素で管理（:root が確実に効く） */
         html[data-theme="dark"] {
-            --bg: #131f24; --card: #1c2e36; --text: #f5f5f7; --border: #3c4c52;
+            --bg: #131f24; --card: #1c2e36; --text: #f5f5f7; --border: #3c4c52; --sub: #7a9aaa;
         }
 
 ```
     body {
         font-family: 'Helvetica Neue', Arial, sans-serif;
-        background: var(--bg); color: var(--text);
+        background-color: var(--bg); color: var(--text);
         margin: 0; padding: 0; min-height: 100vh;
-        transition: background 0.3s, color 0.3s;
+        transition: background-color 0.3s, color 0.3s;
     }
 
     nav {
         padding: 10px 20px; display: flex; justify-content: space-between; align-items: center;
-        background: var(--card); border-bottom: 2px solid var(--border);
+        background-color: var(--card); color: var(--text);
+        border-bottom: 2px solid var(--border);
         position: sticky; top: 0; z-index: 100;
+        transition: background-color 0.3s, color 0.3s;
     }
     .btn-home {
         padding: 8px 15px; border-radius: 12px; border: 2px solid var(--border);
-        background: none; color: var(--text); font-size: 12px; font-weight: 700; cursor: pointer;
+        background-color: var(--card); color: var(--text);
+        font-size: 12px; font-weight: 700; cursor: pointer;
+        transition: background-color 0.3s, color 0.3s;
     }
 
-    .screen { display: none; width: 100%; min-height: calc(100vh - 60px); flex-direction: column; align-items: center; padding: 20px; box-sizing: border-box; }
+    .screen {
+        display: none; width: 100%; min-height: calc(100vh - 60px);
+        flex-direction: column; align-items: center;
+        padding: 20px; box-sizing: border-box;
+        background-color: var(--bg); color: var(--text);
+    }
     .screen.active { display: flex; }
 
     .menu-title { font-size: 1.6rem; font-weight: 900; color: var(--blue); margin: 30px 0; text-align: center; line-height: 1.2; }
 
     .btn-menu {
         width: 100%; max-width: 320px; padding: 25px; margin: 12px 0;
-        background: var(--card); border: 2px solid var(--border); border-bottom: 6px solid var(--border);
+        background-color: var(--card); border: 2px solid var(--border); border-bottom: 6px solid var(--border);
         border-radius: 20px; font-size: 1.2rem; font-weight: 800; color: var(--text); cursor: pointer;
+        transition: background-color 0.3s, color 0.3s;
     }
     .btn-menu:active { transform: translateY(3px); border-bottom-width: 2px; }
     .btn-menu:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -51,11 +60,12 @@
     .c-it-a   { border-color: var(--orange); color: var(--orange); }
 
     .card {
-        width: 100%; max-width: 400px; background: var(--card); border-radius: 28px;
-        border: 2px solid var(--border); border-bottom: 8px solid var(--border);
+        width: 100%; max-width: 400px; background-color: var(--card); color: var(--text);
+        border-radius: 28px; border: 2px solid var(--border); border-bottom: 8px solid var(--border);
         padding: 30px; box-sizing: border-box; margin-bottom: 25px; text-align: center;
+        transition: background-color 0.3s, color 0.3s;
     }
-    .card-kanji { font-size: 3.5rem; font-weight: 900; margin: 10px 0; }
+    .card-kanji { font-size: 3.5rem; font-weight: 900; margin: 10px 0; color: var(--text); }
     .card-yomi  { font-size: 1.5rem; color: var(--sub); margin-bottom: 10px; }
     .card-eng   {
         font-size: 1.2rem; font-weight: 800; color: var(--blue);
@@ -63,11 +73,12 @@
         display: inline-block; margin-bottom: 20px;
     }
     .example-box {
-        text-align: left; background: var(--bg); padding: 15px;
-        border-radius: 15px; border-left: 5px solid var(--blue); margin-top: 10px;
+        text-align: left; background-color: var(--bg); color: var(--text);
+        padding: 15px; border-radius: 15px; border-left: 5px solid var(--blue); margin-top: 10px;
+        transition: background-color 0.3s, color 0.3s;
     }
     .example-label { font-size: 0.7rem; font-weight: 800; color: var(--sub); text-transform: uppercase; margin-bottom: 5px; }
-    .example-text  { font-size: 1rem; line-height: 1.5; font-weight: 600; }
+    .example-text  { font-size: 1rem; line-height: 1.5; font-weight: 600; color: var(--text); }
 
     .controls { display: flex; gap: 20px; width: 100%; max-width: 400px; }
     .btn-ctrl {
@@ -79,7 +90,6 @@
 
     #counter { margin-top: 15px; font-weight: 800; color: var(--sub); }
 
-    /* エラー表示 */
     .error-banner {
         background: #ffebee; color: #c62828; border: 1px solid #ef9a9a;
         border-radius: 10px; padding: 10px 15px; font-size: 13px;
@@ -93,10 +103,8 @@
 <body>
 
 <nav>
-    <!-- [修正2] location.reload() → showScreen() で画面遷移のみ -->
     <button class="btn-home" onclick="goHome()">← HOME</button>
-    <div id="status" style="font-size: 10px; font-weight: 900;">LOADING...</div>
-    <!-- [修正3] data-theme を html に設定 -->
+    <div id="status" style="font-size: 10px; font-weight: 900; color: var(--text);">LOADING...</div>
     <button class="btn-home" onclick="toggleDark()">🌙 DARK</button>
 </nav>
 
@@ -131,7 +139,6 @@
 </div>
 
 <script>
-    // ===== データURL =====
     const URLS = {
         basic: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTDRPlyoBQrG9wzUadhnR8OY9sxuPhkRRpO_WO0BNs-H_f349__5bK5vN6ZYb3U_w/pub?gid=979504695&single=true&output=csv',
         itv:   'https://docs.google.com/spreadsheets/d/e/2PACX-1vTDRPlyoBQrG9wzUadhnR8OY9sxuPhkRRpO_WO0BNs-H_f349__5bK5vN6ZYb3U_w/pub?gid=1703691449&single=true&output=csv',
@@ -142,9 +149,8 @@
     let currentMode  = '';
     let currentList  = [];
     let currentIndex = 0;
-    let currentVoice = ''; // [修正5] window汚染をやめて let で宣言
+    let currentVoice = '';
 
-    // ===== [修正1] RFC4180準拠のCSVパーサー =====
     function parseCSV(text) {
         const rows = [];
         let row = [], cell = '', inQuotes = false;
@@ -154,8 +160,8 @@
             const next = text[i + 1];
 
             if (inQuotes) {
-                if (ch === '"' && next === '"') { cell += '"'; i++; }   // "" → "
-                else if (ch === '"')             { inQuotes = false; }   // 引用符終了
+                if (ch === '"' && next === '"') { cell += '"'; i++; }
+                else if (ch === '"')             { inQuotes = false; }
                 else                             { cell += ch; }
             } else {
                 if      (ch === '"')  { inQuotes = true; }
@@ -172,7 +178,6 @@
                 } else { cell += ch; }
             }
         }
-        // 最終行
         if (cell !== '' || row.length > 0) {
             row.push(cell.trim());
             if (row.some(c => c !== '')) rows.push(row);
@@ -181,15 +186,13 @@
     }
 
     async function loadCSV(url) {
-        // キャッシュ回避のタイムスタンプを付与
         const res = await fetch(url + '&v=' + Date.now());
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const text = await res.text();
         const rows = parseCSV(text);
-        return rows.slice(1).filter(r => r[0]); // ヘッダー除去・空行除去
+        return rows.slice(1).filter(r => r[0]);
     }
 
-    // ===== [修正6] Promise.all で並列フェッチ（高速化）=====
     async function init() {
         try {
             const [basic, itv, ita] = await Promise.all([
@@ -219,24 +222,21 @@
         b.innerText = text;
     }
 
-    // ===== [修正2] HOMEボタンはリロードせず画面遷移のみ =====
     function goHome() {
         document.getElementById('scr-card').classList.remove('active');
         document.getElementById('scr-top').classList.add('active');
     }
 
-    // ===== [修正3] ダークモードを html 要素で管理 =====
     function toggleDark() {
         const html = document.documentElement;
         const isDark = html.getAttribute('data-theme') === 'dark';
         html.setAttribute('data-theme', isDark ? 'light' : 'dark');
     }
 
-    // ===== モード開始 =====
     function startMode(mode) {
         currentMode  = mode;
         currentList  = dataStore[mode];
-        currentIndex = 0; // [修正4] 常に先頭から開始（意図が明確）
+        currentIndex = 0;
 
         if (currentList.length === 0) return;
 
@@ -249,16 +249,14 @@
         const d = currentList[currentIndex];
         if (!d) return;
 
-        // 列: 日本語(0), ひらがな(1), 英語(2), 例文(3)
         document.getElementById('c-kanji').innerText = d[0] || '--';
         document.getElementById('c-yomi').innerText  = d[1] || '--';
         document.getElementById('c-eng').innerText   = d[2] || '--';
         document.getElementById('c-ex').innerText    = d[3] || '例文はありません。';
         document.getElementById('counter').innerText = `${currentIndex + 1} / ${currentList.length}`;
 
-        currentVoice = d[1] || ''; // [修正5] グローバル汚染なし
+        currentVoice = d[1] || '';
 
-        // ボタンの活性/非活性を更新
         document.getElementById('btn-prev').disabled = currentIndex === 0;
         document.getElementById('btn-next').disabled = currentIndex === currentList.length - 1;
     }
@@ -270,7 +268,6 @@
         if (currentIndex > 0) { currentIndex--; updateCard(); }
     }
 
-    // ===== [修正7] キーボード操作対応 =====
     document.addEventListener('keydown', (e) => {
         if (!document.getElementById('scr-card').classList.contains('active')) return;
         if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next();
@@ -278,7 +275,6 @@
         if (e.key === ' ') { e.preventDefault(); speak(); }
     });
 
-    // ===== 音声再生 =====
     function speak() {
         if (!currentVoice) return;
         window.speechSynthesis.cancel();
@@ -288,7 +284,6 @@
         window.speechSynthesis.speak(u);
     }
 
-    // ===== 起動 =====
     init();
 </script>
 
