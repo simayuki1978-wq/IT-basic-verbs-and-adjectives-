@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -8,97 +7,163 @@
     <style>
         :root {
             --bg: #f0f2f5; --card: #ffffff; --text: #1c1c1e;
-            --blue: #1cb0f6; --green: #58cc02; --orange: #ff9600;
+            --blue: #1cb0f6; --green: #58cc02; --orange: #ff9600; --red: #ff4b4b;
             --sub: #afafaf; --border: #e5e5e5;
         }
         html[data-theme="dark"] {
             --bg: #131f24; --card: #1c2e36; --text: #f5f5f7; --border: #3c4c52; --sub: #7a9aaa;
         }
 
-```
-    body {
-        font-family: 'Helvetica Neue', Arial, sans-serif;
-        background-color: var(--bg); color: var(--text);
-        margin: 0; padding: 0; min-height: 100vh;
-        transition: background-color 0.3s, color 0.3s;
-    }
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg); color: var(--text);
+            margin: 0; padding: 0; min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
 
-    nav {
-        padding: 10px 20px; display: flex; justify-content: space-between; align-items: center;
-        background-color: var(--card); color: var(--text);
-        border-bottom: 2px solid var(--border);
-        position: sticky; top: 0; z-index: 100;
-        transition: background-color 0.3s, color 0.3s;
-    }
-    .btn-home {
-        padding: 8px 15px; border-radius: 12px; border: 2px solid var(--border);
-        background-color: var(--card); color: var(--text);
-        font-size: 12px; font-weight: 700; cursor: pointer;
-        transition: background-color 0.3s, color 0.3s;
-    }
+        nav {
+            padding: 10px 20px; display: flex; justify-content: space-between; align-items: center;
+            background-color: var(--card); color: var(--text);
+            border-bottom: 2px solid var(--border);
+            position: sticky; top: 0; z-index: 100;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .btn-home {
+            padding: 8px 15px; border-radius: 12px; border: 2px solid var(--border);
+            background-color: var(--card); color: var(--text);
+            font-size: 12px; font-weight: 700; cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
 
-    .screen {
-        display: none; width: 100%; min-height: calc(100vh - 60px);
-        flex-direction: column; align-items: center;
-        padding: 20px; box-sizing: border-box;
-        background-color: var(--bg); color: var(--text);
-    }
-    .screen.active { display: flex; }
+        .screen {
+            display: none; width: 100%; min-height: calc(100vh - 60px);
+            flex-direction: column; align-items: center;
+            padding: 20px; box-sizing: border-box;
+            background-color: var(--bg); color: var(--text);
+        }
+        .screen.active { display: flex; }
 
-    .menu-title { font-size: 1.6rem; font-weight: 900; color: var(--blue); margin: 30px 0; text-align: center; line-height: 1.2; }
+        .menu-title { font-size: 1.6rem; font-weight: 900; color: var(--blue); margin: 30px 0; text-align: center; line-height: 1.2; }
 
-    .btn-menu {
-        width: 100%; max-width: 320px; padding: 25px; margin: 12px 0;
-        background-color: var(--card); border: 2px solid var(--border); border-bottom: 6px solid var(--border);
-        border-radius: 20px; font-size: 1.2rem; font-weight: 800; color: var(--text); cursor: pointer;
-        transition: background-color 0.3s, color 0.3s;
-    }
-    .btn-menu:active { transform: translateY(3px); border-bottom-width: 2px; }
-    .btn-menu:disabled { opacity: 0.5; cursor: not-allowed; }
-    .c-basic { border-color: var(--blue); color: var(--blue); }
-    .c-it-v   { border-color: var(--green); color: var(--green); }
-    .c-it-a   { border-color: var(--orange); color: var(--orange); }
+        .btn-menu {
+            width: 100%; max-width: 320px; padding: 25px; margin: 12px 0;
+            background-color: var(--card); border: 2px solid var(--border); border-bottom: 6px solid var(--border);
+            border-radius: 20px; font-size: 1.2rem; font-weight: 800; color: var(--text); cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .btn-menu:active { transform: translateY(3px); border-bottom-width: 2px; }
+        .btn-menu:disabled { opacity: 0.5; cursor: not-allowed; }
+        .c-basic { border-color: var(--blue); color: var(--blue); }
+        .c-it-v   { border-color: var(--green); color: var(--green); }
+        .c-it-a   { border-color: var(--orange); color: var(--orange); }
+        .c-conv   { border-color: var(--red); color: var(--red); }
 
-    .card {
-        width: 100%; max-width: 400px; background-color: var(--card); color: var(--text);
-        border-radius: 28px; border: 2px solid var(--border); border-bottom: 8px solid var(--border);
-        padding: 30px; box-sizing: border-box; margin-bottom: 25px; text-align: center;
-        transition: background-color 0.3s, color 0.3s;
-    }
-    .card-kanji { font-size: 3.5rem; font-weight: 900; margin: 10px 0; color: var(--text); }
-    .card-yomi  { font-size: 1.5rem; color: var(--sub); margin-bottom: 10px; }
-    .card-eng   {
-        font-size: 1.2rem; font-weight: 800; color: var(--blue);
-        background: rgba(28, 176, 246, 0.1); padding: 10px; border-radius: 12px;
-        display: inline-block; margin-bottom: 20px;
-    }
-    .example-box {
-        text-align: left; background-color: var(--bg); color: var(--text);
-        padding: 15px; border-radius: 15px; border-left: 5px solid var(--blue); margin-top: 10px;
-        transition: background-color 0.3s, color 0.3s;
-    }
-    .example-label { font-size: 0.7rem; font-weight: 800; color: var(--sub); text-transform: uppercase; margin-bottom: 5px; }
-    .example-text  { font-size: 1rem; line-height: 1.5; font-weight: 600; color: var(--text); }
+        .card {
+            width: 100%; max-width: 400px; background-color: var(--card); color: var(--text);
+            border-radius: 28px; border: 2px solid var(--border); border-bottom: 8px solid var(--border);
+            padding: 30px; box-sizing: border-box; margin-bottom: 25px; text-align: center;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .card-kanji { font-size: 3.5rem; font-weight: 900; margin: 10px 0; color: var(--text); }
+        .card-yomi  { font-size: 1.5rem; color: var(--sub); margin-bottom: 10px; }
+        .card-eng   {
+            font-size: 1.2rem; font-weight: 800; color: var(--blue);
+            background: rgba(28, 176, 246, 0.1); padding: 10px; border-radius: 12px;
+            display: inline-block; margin-bottom: 20px;
+        }
+        .example-box {
+            text-align: left; background-color: var(--bg); color: var(--text);
+            padding: 15px; border-radius: 15px; border-left: 5px solid var(--blue); margin-top: 10px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .example-label { font-size: 0.7rem; font-weight: 800; color: var(--sub); text-transform: uppercase; margin-bottom: 5px; }
+        .example-text  { font-size: 1rem; line-height: 1.5; font-weight: 600; color: var(--text); }
 
-    .controls { display: flex; gap: 20px; width: 100%; max-width: 400px; }
-    .btn-ctrl {
-        flex: 1; padding: 20px; border-radius: 20px; border: none;
-        background: var(--blue); color: white; font-weight: 800; font-size: 1.1rem;
-        cursor: pointer; box-shadow: 0 5px 0 #1899d6;
-    }
-    .btn-ctrl:active { transform: translateY(3px); box-shadow: 0 2px 0 #1899d6; }
+        .controls { display: flex; gap: 20px; width: 100%; max-width: 400px; }
+        .btn-ctrl {
+            flex: 1; padding: 20px; border-radius: 20px; border: none;
+            background: var(--blue); color: white; font-weight: 800; font-size: 1.1rem;
+            cursor: pointer; box-shadow: 0 5px 0 #1899d6;
+        }
+        .btn-ctrl:active { transform: translateY(3px); box-shadow: 0 2px 0 #1899d6; }
 
-    #counter { margin-top: 15px; font-weight: 800; color: var(--sub); }
+        #counter { margin-top: 15px; font-weight: 800; color: var(--sub); }
 
-    .error-banner {
-        background: #ffebee; color: #c62828; border: 1px solid #ef9a9a;
-        border-radius: 10px; padding: 10px 15px; font-size: 13px;
-        margin-bottom: 15px; width: 100%; max-width: 400px; box-sizing: border-box;
-        display: none;
-    }
-</style>
-```
+        .error-banner {
+            background: #ffebee; color: #c62828; border: 1px solid #ef9a9a;
+            border-radius: 10px; padding: 10px 15px; font-size: 13px;
+            margin-bottom: 15px; width: 100%; max-width: 400px; box-sizing: border-box;
+            display: none;
+        }
 
+        /* ── 会話例 (CONVERSATION) ── */
+        .conv-header {
+            width: 100%; max-width: 460px; text-align: center; margin-bottom: 14px;
+        }
+        .conv-title { font-size: 1.3rem; font-weight: 900; color: var(--red); margin-bottom: 4px; }
+        .conv-subtitle { font-size: 0.8rem; color: var(--sub); font-weight: 600; }
+
+        .stage-tabs {
+            display: flex; gap: 8px; overflow-x: auto; width: 100%; max-width: 460px;
+            padding-bottom: 10px; margin-bottom: 16px;
+            -webkit-overflow-scrolling: touch; scrollbar-width: none;
+        }
+        .stage-tabs::-webkit-scrollbar { display: none; }
+        .stage-tab {
+            flex-shrink: 0; padding: 10px 16px; border-radius: 14px;
+            border: 2px solid var(--border); background: var(--card); color: var(--sub);
+            font-size: 0.8rem; font-weight: 800; cursor: pointer; white-space: nowrap;
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+        }
+        .stage-tab.active { border-color: var(--red); color: var(--red); background: rgba(255,75,75,0.08); }
+        .stage-num {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 18px; height: 18px; border-radius: 50%;
+            background: var(--sub); color: #fff; font-size: 0.65rem; margin-right: 5px;
+        }
+        .stage-tab.active .stage-num { background: var(--red); }
+
+        .conv-card {
+            width: 100%; max-width: 460px; background-color: var(--card);
+            border-radius: 24px; border: 2px solid var(--border); border-bottom: 8px solid var(--border);
+            padding: 22px 20px; box-sizing: border-box; margin-bottom: 16px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .conv-scenario {
+            font-size: 0.78rem; color: var(--sub); font-weight: 600;
+            padding-bottom: 12px; margin-bottom: 14px; border-bottom: 1.5px dashed var(--border);
+        }
+        .conv-line { display: flex; gap: 10px; margin-bottom: 14px; align-items: flex-start; }
+        .conv-line:last-child { margin-bottom: 0; }
+        .conv-avatar {
+            flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; font-weight: 900; color: #fff;
+        }
+        .conv-avatar.role-a { background: var(--blue); }
+        .conv-avatar.role-b { background: var(--red); }
+        .conv-bubble { flex: 1; min-width: 0; }
+        .conv-speaker { font-size: 0.72rem; font-weight: 800; color: var(--sub); margin-bottom: 3px; }
+        .conv-text {
+            font-size: 1rem; line-height: 1.65; font-weight: 600; color: var(--text);
+            background: var(--bg); border-radius: 12px; padding: 10px 14px;
+        }
+        .conv-text-en {
+            font-size: 0.82rem; line-height: 1.5; color: var(--sub); font-weight: 500;
+            margin-top: 5px; padding: 0 14px; display: none;
+        }
+        .conv-text-en.visible { display: block; }
+
+        .conv-toolbar {
+            display: flex; gap: 10px; width: 100%; max-width: 460px; margin-bottom: 14px;
+        }
+        .btn-toggle-en {
+            flex: 1; padding: 12px; border-radius: 14px; border: 2px solid var(--border);
+            background: var(--card); color: var(--text); font-weight: 800; font-size: 0.9rem;
+            cursor: pointer; transition: background 0.2s, border-color 0.2s, color 0.2s;
+        }
+        .btn-toggle-en.on { border-color: var(--blue); color: var(--blue); background: rgba(28,176,246,0.08); }
+    </style>
 </head>
 <body>
 
@@ -109,17 +174,16 @@
 </nav>
 
 <!-- トップ画面 -->
-
 <div id="scr-top" class="screen active">
     <h1 class="menu-title">IT JAPANESE<br>LEARNING</h1>
     <div id="error-banner" class="error-banner">⚠️ データの読み込みに失敗しました。URLを確認してください。</div>
     <button class="btn-menu c-basic" id="btn-basic" onclick="startMode('basic')" disabled>基本動詞100 (読込中...)</button>
     <button class="btn-menu c-it-v"  id="btn-itv"   onclick="startMode('itv')"   disabled>IT動詞100 (読込中...)</button>
     <button class="btn-menu c-it-a"  id="btn-ita"   onclick="startMode('ita')"   disabled>IT形容詞 (読込中...)</button>
+    <button class="btn-menu c-conv"  id="btn-conv"  onclick="startConv()">💬 会話例（オフショア開発）</button>
 </div>
 
 <!-- カード画面 -->
-
 <div id="scr-card" class="screen">
     <div class="card">
         <div onclick="speak()" style="cursor:pointer; font-size: 2.5rem; margin-bottom: 15px;" title="発音を聞く">🔊</div>
@@ -136,6 +200,31 @@
         <button class="btn-ctrl" onclick="next()" id="btn-next">NEXT →</button>
     </div>
     <div id="counter">0 / 0</div>
+</div>
+
+<!-- 会話例画面 -->
+<div id="scr-conv" class="screen">
+    <div class="conv-header">
+        <div class="conv-title">💬 会話例</div>
+        <div class="conv-subtitle">オフショア開発の会議・打ち合わせ想定 / Offshore development meeting scenarios</div>
+    </div>
+
+    <div class="stage-tabs" id="stage-tabs"></div>
+
+    <div class="conv-toolbar">
+        <button class="btn-toggle-en" id="btn-toggle-en" onclick="toggleConvEn()">🇬🇧 English</button>
+    </div>
+
+    <div class="conv-card" id="conv-card">
+        <div class="conv-scenario" id="conv-scenario"></div>
+        <div id="conv-lines"></div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-ctrl" onclick="prevStage()" id="btn-conv-prev">← PREV</button>
+        <button class="btn-ctrl" onclick="nextStage()" id="btn-conv-next">NEXT →</button>
+    </div>
+    <div id="conv-counter" style="margin-top: 15px; font-weight: 800; color: var(--sub);">1 / 6</div>
 </div>
 
 <script>
@@ -224,6 +313,7 @@
 
     function goHome() {
         document.getElementById('scr-card').classList.remove('active');
+        document.getElementById('scr-conv').classList.remove('active');
         document.getElementById('scr-top').classList.add('active');
     }
 
@@ -269,10 +359,15 @@
     }
 
     document.addEventListener('keydown', (e) => {
-        if (!document.getElementById('scr-card').classList.contains('active')) return;
-        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next();
-        if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   prev();
-        if (e.key === ' ') { e.preventDefault(); speak(); }
+        if (document.getElementById('scr-card').classList.contains('active')) {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next();
+            if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   prev();
+            if (e.key === ' ') { e.preventDefault(); speak(); }
+        }
+        if (document.getElementById('scr-conv').classList.contains('active')) {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextStage();
+            if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   prevStage();
+        }
     });
 
     function speak() {
@@ -282,6 +377,170 @@
         u.lang = 'ja-JP';
         u.rate = 0.9;
         window.speechSynthesis.speak(u);
+    }
+
+    /* ─────────────────────────────────────────
+       会話例 (CONVERSATION EXAMPLES)
+       オフショア開発の上流工程〜下流工程を想定
+    ───────────────────────────────────────── */
+    const conversations = [
+        {
+            stage: "① 要件定義",
+            stageEn: "Requirements Definition",
+            scenario: "クライアントが新機能の要件を説明し、SEが仕様の詳細を確認している場面です。",
+            roleA: "クライアント", roleB: "SE（オフショア）",
+            lines: [
+                { role:"a", ja:"今回追加したい機能について、要件を説明させていただきます。", en:"Let me explain the requirements for the feature we'd like to add this time." },
+                { role:"b", ja:"よろしくお願いいたします。資料を拝見しております。", en:"Thank you. I've looked over the materials." },
+                { role:"a", ja:"ユーザーがログインした際に、利用履歴を表示する画面を追加したいと考えています。", en:"We'd like to add a screen that shows usage history when a user logs in." },
+                { role:"b", ja:"承知いたしました。表示する履歴の期間に制限はございますか。", en:"Understood. Is there a limit on the time period of history to display?" },
+                { role:"a", ja:"直近3か月分を表示していただければと思います。", en:"We'd like the most recent 3 months to be shown." },
+                { role:"b", ja:"かしこまりました。他に考慮すべき点はございますか。", en:"Certainly. Is there anything else we should take into account?" },
+                { role:"a", ja:"権限によって表示内容を変える必要があります。管理者は全ユーザーの履歴が見られるようにしてください。", en:"The displayed content needs to change based on permissions. Administrators should be able to see all users' history." },
+                { role:"b", ja:"承知いたしました。権限管理の仕様書を別途作成し、来週共有させていただきます。", en:"Understood. We'll prepare a separate spec for the permission management and share it next week." }
+            ]
+        },
+        {
+            stage: "② 設計",
+            stageEn: "Design",
+            scenario: "オフショアチームのPMが基本設計書をレビューしてもらい、指摘を受けている場面です。",
+            roleA: "PM（オフショア）", roleB: "発注元SE",
+            lines: [
+                { role:"a", ja:"基本設計書のレビューをお願いしたいのですが、お時間よろしいでしょうか。", en:"I'd like to ask you to review the basic design document — do you have time?" },
+                { role:"b", ja:"はい、大丈夫です。どの部分から見ましょうか。", en:"Yes, that's fine. Where should we start?" },
+                { role:"a", ja:"まず、データベースのテーブル設計についてご確認いただけますでしょうか。", en:"First, could you check the database table design?" },
+                { role:"b", ja:"このテーブルですが、履歴データが増えた場合のパフォーマンスは検討されていますか。", en:"Regarding this table, have you considered performance as the history data grows?" },
+                { role:"a", ja:"ご指摘ありがとうございます。インデックスの設計を見直し、明日までに再提出いたします。", en:"Thank you for pointing that out. We'll review the index design and resubmit by tomorrow." },
+                { role:"b", ja:"お願いします。あと、API仕様書のほうも確認したいです。", en:"Please do. Also, I'd like to check the API specification as well." },
+                { role:"a", ja:"かしこまりました。API仕様書は別紙にまとめてありますので、こちらもご確認ください。", en:"Understood. The API spec is summarized in a separate document, so please review that too." }
+            ]
+        },
+        {
+            stage: "③ 開発・実装",
+            stageEn: "Development",
+            scenario: "週次の進捗報告で、オフショアリーダーが遅延の状況を説明している場面です。",
+            roleA: "PM（発注元）", roleB: "オフショアリーダー",
+            lines: [
+                { role:"a", ja:"今週の進捗はいかがでしょうか。", en:"How is this week's progress?" },
+                { role:"b", ja:"ログイン機能の実装は完了しました。現在は履歴表示機能に着手しております。", en:"The login feature implementation is complete. We're currently working on the history display feature." },
+                { role:"a", ja:"ありがとうございます。予定通り進んでいますか。", en:"Thank you. Is it progressing as scheduled?" },
+                { role:"b", ja:"若干遅れが出ております。仕様の一部に不明点があり、確認に時間がかかりました。", en:"There's a slight delay. Some parts of the spec were unclear, and confirming them took time." },
+                { role:"a", ja:"どの部分でしょうか。", en:"Which part was that?" },
+                { role:"b", ja:"権限による表示制御の仕様です。メールでお送りした質問への回答をお待ちしております。", en:"The spec for permission-based display control. We're waiting on a reply to the question we sent by email." },
+                { role:"a", ja:"失礼しました、本日中に回答いたします。", en:"Sorry about that — I'll reply by the end of today." }
+            ]
+        },
+        {
+            stage: "④ テスト",
+            stageEn: "Testing",
+            scenario: "結合テストでオフショア側のQA担当が発見した不具合を報告している場面です。",
+            roleA: "テスト担当（オフショア）", roleB: "PM（発注元）",
+            lines: [
+                { role:"a", ja:"結合テストにて不具合が1件見つかりましたので、ご報告いたします。", en:"We found one defect during integration testing, so I'd like to report it." },
+                { role:"b", ja:"お願いします。どのような症状ですか。", en:"Please go ahead. What are the symptoms?" },
+                { role:"a", ja:"管理者権限でログインした場合、他ユーザーの履歴が正しく表示されません。", en:"When logging in with administrator privileges, other users' history isn't displayed correctly." },
+                { role:"b", ja:"再現手順を教えていただけますか。", en:"Could you tell me the steps to reproduce it?" },
+                { role:"a", ja:"はい、テストケースNo.15の手順で毎回再現します。詳細はチケットに記載しております。", en:"Yes, it reproduces every time following test case No.15. Details are in the ticket." },
+                { role:"b", ja:"確認しました。優先度は高で対応をお願いします。", en:"I've checked it. Please treat this as high priority." },
+                { role:"a", ja:"承知いたしました。修正後、再テストの結果もご報告いたします。", en:"Understood. I'll also report the retest results after the fix." }
+            ]
+        },
+        {
+            stage: "⑤ リリース・移行",
+            stageEn: "Release & Deployment",
+            scenario: "本番リリースを翌週に控え、PMとインフラ担当が最終確認をしている場面です。",
+            roleA: "PM", roleB: "インフラ担当",
+            lines: [
+                { role:"a", ja:"来週のリリースに向けて、最終確認をさせてください。", en:"Let's do a final check ahead of next week's release." },
+                { role:"b", ja:"はい。リリース手順書は準備済みです。", en:"Yes. The release procedure document is ready." },
+                { role:"a", ja:"ロールバック手順も含まれていますか。", en:"Does it include a rollback procedure as well?" },
+                { role:"b", ja:"はい、問題発生時は前バージョンに10分程度で戻せる想定です。", en:"Yes, if a problem occurs, we expect to be able to revert to the previous version in about 10 minutes." },
+                { role:"a", ja:"リリース作業の時間帯はいつを予定していますか。", en:"What time window are you planning for the release work?" },
+                { role:"b", ja:"深夜2時から4時の間で、利用者への影響が最小になる時間帯を選定しました。", en:"We selected 2 AM to 4 AM, the window with the least impact on users." },
+                { role:"a", ja:"承知しました。当日は関係者全員で立ち会いをお願いします。", en:"Understood. Please have all stakeholders on standby that day." }
+            ]
+        },
+        {
+            stage: "⑥ 運用保守",
+            stageEn: "Operations & Maintenance",
+            scenario: "深夜に発生した障害について、翌朝クライアントへ状況を報告している場面です。",
+            roleA: "クライアント", roleB: "運用担当（オフショア）",
+            lines: [
+                { role:"a", ja:"昨夜、システムに障害が発生したと連絡を受けました。状況を教えてください。", en:"I was informed there was a system failure last night. Please tell me the situation." },
+                { role:"b", ja:"はい、深夜1時頃にサーバーの負荷が急上昇し、一時的にアクセスできない状態になりました。", en:"Yes, around 1 AM the server load spiked suddenly, making the system temporarily inaccessible." },
+                { role:"a", ja:"現在は復旧していますか。", en:"Has it been resolved now?" },
+                { role:"b", ja:"はい、1時間ほどで復旧いたしました。原因を調査し、再発防止策を検討しております。", en:"Yes, it was restored within about an hour. We're investigating the cause and considering preventive measures." },
+                { role:"a", ja:"原因は特定できましたか。", en:"Have you identified the cause?" },
+                { role:"b", ja:"バッチ処理と通常アクセスが重なったことが原因と判明しました。処理時間の見直しを行います。", en:"We found that a batch process overlapped with regular access. We'll review the processing schedule." },
+                { role:"a", ja:"対応報告書はいついただけますか。", en:"When can I receive the incident report?" },
+                { role:"b", ja:"明日中に提出させていただきます。", en:"We'll submit it by the end of tomorrow." }
+            ]
+        }
+    ];
+
+    let convIndex = 0;
+    let convShowEn = false;
+
+    function renderStageTabs() {
+        const wrap = document.getElementById('stage-tabs');
+        wrap.innerHTML = '';
+        conversations.forEach((c, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'stage-tab' + (i === convIndex ? ' active' : '');
+            btn.innerHTML = `<span class="stage-num">${i + 1}</span>${c.stage.replace(/^[①-⑥]\s*/, '')}`;
+            btn.onclick = () => { convIndex = i; renderConv(); };
+            wrap.appendChild(btn);
+        });
+    }
+
+    function renderConv() {
+        const c = conversations[convIndex];
+
+        document.getElementById('conv-scenario').innerText = `${c.stage}（${c.stageEn}） — ${c.scenario}`;
+
+        const linesEl = document.getElementById('conv-lines');
+        linesEl.innerHTML = '';
+        c.lines.forEach(line => {
+            const isA = line.role === 'a';
+            const wrap = document.createElement('div');
+            wrap.className = 'conv-line';
+            wrap.innerHTML = `
+                <div class="conv-avatar ${isA ? 'role-a' : 'role-b'}">${isA ? c.roleA[0] : c.roleB[0]}</div>
+                <div class="conv-bubble">
+                    <div class="conv-speaker">${isA ? c.roleA : c.roleB}</div>
+                    <div class="conv-text">${line.ja}</div>
+                    <div class="conv-text-en ${convShowEn ? 'visible' : ''}">${line.en}</div>
+                </div>
+            `;
+            linesEl.appendChild(wrap);
+        });
+
+        document.getElementById('conv-counter').innerText = `${convIndex + 1} / ${conversations.length}`;
+        document.getElementById('btn-conv-prev').disabled = convIndex === 0;
+        document.getElementById('btn-conv-next').disabled = convIndex === conversations.length - 1;
+
+        renderStageTabs();
+    }
+
+    function toggleConvEn() {
+        convShowEn = !convShowEn;
+        document.getElementById('btn-toggle-en').classList.toggle('on', convShowEn);
+        document.getElementById('btn-toggle-en').innerText = convShowEn ? '🇬🇧 English ✓' : '🇬🇧 English';
+        document.querySelectorAll('.conv-text-en').forEach(el => el.classList.toggle('visible', convShowEn));
+    }
+
+    function nextStage() {
+        if (convIndex < conversations.length - 1) { convIndex++; renderConv(); }
+    }
+    function prevStage() {
+        if (convIndex > 0) { convIndex--; renderConv(); }
+    }
+
+    function startConv() {
+        convIndex = 0;
+        renderConv();
+        document.getElementById('scr-top').classList.remove('active');
+        document.getElementById('scr-conv').classList.add('active');
     }
 
     init();
