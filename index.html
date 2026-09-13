@@ -86,6 +86,7 @@
             cursor: pointer; box-shadow: 0 5px 0 #1899d6;
         }
         .btn-ctrl:active { transform: translateY(3px); box-shadow: 0 2px 0 #1899d6; }
+        .btn-ctrl:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform: none; }
 
         #counter { margin-top: 15px; font-weight: 800; color: var(--sub); }
 
@@ -93,8 +94,13 @@
             background: #ffebee; color: #c62828; border: 1px solid #ef9a9a;
             border-radius: 10px; padding: 10px 15px; font-size: 13px;
             margin-bottom: 15px; width: 100%; max-width: 400px; box-sizing: border-box;
-            display: none;
+            display: none; align-items: center; flex-wrap: wrap; gap: 8px;
         }
+        .btn-retry {
+            padding: 5px 14px; border-radius: 8px; border: 1.5px solid #c62828;
+            background: #fff; color: #c62828; font-weight: 800; font-size: 12px; cursor: pointer;
+        }
+        .btn-retry:active { transform: translateY(1px); }
 
         /* ── 会話例 (CONVERSATION) ── */
         .conv-header {
@@ -176,7 +182,10 @@
 <!-- トップ画面 -->
 <div id="scr-top" class="screen active">
     <h1 class="menu-title">IT JAPANESE<br>LEARNING</h1>
-    <div id="error-banner" class="error-banner">⚠️ データの読み込みに失敗しました。URLを確認してください。</div>
+    <div id="error-banner" class="error-banner">
+        <span>⚠️ <span id="error-banner-text">データの読み込みに失敗しました。</span></span>
+        <button class="btn-retry" onclick="retryLoad()">🔄 再試行</button>
+    </div>
     <button class="btn-menu c-basic" id="btn-basic" onclick="startMode('basic')" disabled>基本動詞100 (読込中...)</button>
     <button class="btn-menu c-it-v"  id="btn-itv"   onclick="startMode('itv')"   disabled>IT動詞100 (読込中...)</button>
     <button class="btn-menu c-it-a"  id="btn-ita"   onclick="startMode('ita')"   disabled>IT形容詞 (読込中...)</button>
@@ -233,12 +242,66 @@
         itv:   'https://docs.google.com/spreadsheets/d/e/2PACX-1vTDRPlyoBQrG9wzUadhnR8OY9sxuPhkRRpO_WO0BNs-H_f349__5bK5vN6ZYb3U_w/pub?gid=1703691449&single=true&output=csv',
         ita:   'https://docs.google.com/spreadsheets/d/e/2PACX-1vTDRPlyoBQrG9wzUadhnR8OY9sxuPhkRRpO_WO0BNs-H_f349__5bK5vN6ZYb3U_w/pub?gid=2089928581&single=true&output=csv'
     };
+    const LABELS = { basic: '基本動詞100', itv: 'IT動詞100', ita: 'IT形容詞' };
+    const BTN_IDS = { basic: 'btn-basic', itv: 'btn-itv', ita: 'btn-ita' };
 
     const dataStore = { basic: [], itv: [], ita: [] };
     let currentMode  = '';
     let currentList  = [];
     let currentIndex = 0;
     let currentVoice = '';
+    let failedKeys   = [];
+
+    // ── 音声読み上げ設定 ──────────────────────────────────────────────
+    // 1) まず VOICEVOX（正確な日本語アクセント辞書を持つ無料の音声合成エンジン）を
+    //    api.tts.quest の無料公開プロキシ経由で試す（自前サーバー・APIキーとも不要）。
+    // 2) 失敗・タイムアウト・オフライン等の場合は、端末組み込みの音声合成に自動的に
+    //    切り替える（フォールバック）ので、常に読み上げ自体は機能する。
+    //
+    // 話者ID（0始まり）。3=ずんだもん(ノーマル) は無料枠での動作を確認済み。
+    // 落ち着いた声色を試したい場合は 2=四国めたん(ノーマル) / 9=波音リツ(ノーマル) /
+    // 13=青山龍星(ノーマル) 等に変更可能（発音・アクセントの正確さは声色に関わらず同じ）。
+    // 話者一覧: https://static.tts.quest/voicevox_speakers_utf8.json
+    // より高速・安定させたい場合は https://su-shiki.com/api/ で無料APIキーを取得し
+    // VOICEVOX_API_KEY に設定してください（未設定でも動作します）。
+    const USE_VOICEVOX        = true;
+    const VOICEVOX_SPEAKER_ID = 3;
+    const VOICEVOX_API_KEY    = '';
+    const VOICEVOX_TIMEOUT_MS = 7000;
+
+    const voicevoxUrlCache = new Map(); // text -> mp3StreamingUrl（同じ単語の再取得を防ぐ）
+    let activeAudio = null;             // 再生中のVOICEVOX音声（連打・画面遷移時に停止するため）
+    let jaVoices = [];                  // 端末の日本語音声一覧（フォールバック用）
+
+    function loadJaVoices() {
+        jaVoices = window.speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith('ja'));
+    }
+    if ('speechSynthesis' in window) {
+        loadJaVoices();
+        window.speechSynthesis.onvoiceschanged = loadJaVoices;
+    }
+
+    // 修正点: 従来は u.lang='ja-JP' を指定するのみでブラウザ任せの音声が使われており、
+    // 環境によっては低品質・アクセント不自然な音声が選ばれていた。
+    // 既知の高品質な音声を優先的に選び、なければネットワーク音声（クラウド品質の
+    // ことが多い）、それも無ければ利用可能な日本語音声を使うようにする。
+    function pickBestJapaneseVoice() {
+        if (jaVoices.length === 0) return null;
+        const preferredNames = [
+            'Google 日本語',
+            'Microsoft Nanami Online (Natural) - Japanese (Japan)',
+            'Microsoft Keita Online (Natural) - Japanese (Japan)',
+            'Microsoft Ayumi Online (Natural) - Japanese (Japan)',
+            'O-Ren', 'Kyoko', 'Otoya'
+        ];
+        for (const name of preferredNames) {
+            const v = jaVoices.find(v => v.name.includes(name));
+            if (v) return v;
+        }
+        const remote = jaVoices.find(v => v.localService === false);
+        if (remote) return remote;
+        return jaVoices[0];
+    }
 
     function parseCSV(text) {
         const rows = [];
@@ -274,35 +337,79 @@
         return rows;
     }
 
-    async function loadCSV(url) {
-        const res = await fetch(url + '&v=' + Date.now());
+    // 修正点: タイムアウト処理を追加（通信が固まって "LOADING..." のまま止まるのを防止）
+    // 修正点: Content-Type を確認し、CSVの代わりにHTML（権限エラーページ等）が
+    //         返ってきた場合に「成功扱いで文字化けデータを表示する」バグを防止
+    async function loadCSV(url, timeoutMs = 15000) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        let res;
+        try {
+            res = await fetch(url + '&v=' + Date.now(), { signal: controller.signal, cache: 'no-store' });
+        } catch (e) {
+            if (e.name === 'AbortError') throw new Error('通信がタイムアウトしました');
+            throw e;
+        } finally {
+            clearTimeout(timer);
+        }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const contentType = res.headers.get('content-type') || '';
         const text = await res.text();
+        if (contentType.includes('text/html')) {
+            throw new Error('CSVではなくHTMLが返されました（シートの公開設定をご確認ください）');
+        }
+
         const rows = parseCSV(text);
         return rows.slice(1).filter(r => r[0]);
     }
 
-    async function init() {
-        try {
-            const [basic, itv, ita] = await Promise.all([
-                loadCSV(URLS.basic),
-                loadCSV(URLS.itv),
-                loadCSV(URLS.ita)
-            ]);
-            dataStore.basic = basic;
-            dataStore.itv   = itv;
-            dataStore.ita   = ita;
+    // 修正点: Promise.all → Promise.allSettled
+    // 旧コードは3つのシートのうち1つでも読み込みに失敗すると、
+    // 残り2つが正常でも全ボタンが disabled のままになっていた。
+    // シート単位で成功/失敗を判定し、成功した分だけでも使えるようにする。
+    async function init(keysToLoad = ['basic', 'itv', 'ita']) {
+        const results = await Promise.allSettled(keysToLoad.map(k => loadCSV(URLS[k])));
 
-            updateBtn('btn-basic', `基本動詞100 (${basic.length}件)`);
-            updateBtn('btn-itv',   `IT動詞100 (${itv.length}件)`);
-            updateBtn('btn-ita',   `IT形容詞 (${ita.length}件)`);
+        failedKeys = failedKeys.filter(k => !keysToLoad.includes(k));
+
+        results.forEach((result, i) => {
+            const key = keysToLoad[i];
+            if (result.status === 'fulfilled') {
+                dataStore[key] = result.value;
+                updateBtn(BTN_IDS[key], `${LABELS[key]} (${result.value.length}件)`);
+            } else {
+                console.error(`[${key}] 読み込み失敗:`, result.reason);
+                failedKeys.push(key);
+                const b = document.getElementById(BTN_IDS[key]);
+                b.innerText = `${LABELS[key]} (読込失敗 ⚠️)`;
+                b.disabled = true;
+            }
+        });
+
+        const banner = document.getElementById('error-banner');
+        if (failedKeys.length > 0) {
+            document.getElementById('status').innerText = '⚠️ ERROR';
+            document.getElementById('error-banner-text').innerText =
+                `一部データの読み込みに失敗しました（${failedKeys.length}件）。ネットワークまたはシートの公開設定をご確認ください。`;
+            banner.style.display = 'flex';
+        } else {
             document.getElementById('status').innerText = '✅ SYNCED';
-
-        } catch (e) {
-            console.error(e);
-            document.getElementById('status').innerText = '❌ ERROR';
-            document.getElementById('error-banner').style.display = 'block';
+            banner.style.display = 'none';
         }
+    }
+
+    // 修正点: 失敗したシートだけを再取得するリトライ機能を追加
+    // （旧コードにはエラー時の回復手段がなく、ページの手動リロードしかなかった）
+    function retryLoad() {
+        if (failedKeys.length === 0) return;
+        document.getElementById('status').innerText = '🔄 RETRYING...';
+        const retrying = [...failedKeys];
+        retrying.forEach(key => {
+            const b = document.getElementById(BTN_IDS[key]);
+            b.innerText = `${LABELS[key]} (読込中...)`;
+        });
+        init(retrying);
     }
 
     function updateBtn(id, text) {
@@ -312,6 +419,7 @@
     }
 
     function goHome() {
+        stopAllAudio();
         document.getElementById('scr-card').classList.remove('active');
         document.getElementById('scr-conv').classList.remove('active');
         document.getElementById('scr-top').classList.add('active');
@@ -328,7 +436,12 @@
         currentList  = dataStore[mode];
         currentIndex = 0;
 
-        if (currentList.length === 0) return;
+        // 修正点: 該当データが0件のままボタンだけ有効になっているケース（空シート等）で
+        // 何も起きずに無反応になる（ユーザーがバグと誤解する）のを防ぎ、明示的に知らせる
+        if (!currentList || currentList.length === 0) {
+            alert('このカテゴリのデータが読み込まれていません。「再試行」をお試しいただくか、シートの内容をご確認ください。');
+            return;
+        }
 
         updateCard();
         document.getElementById('scr-top').classList.remove('active');
@@ -352,10 +465,10 @@
     }
 
     function next() {
-        if (currentIndex < currentList.length - 1) { currentIndex++; updateCard(); }
+        if (currentIndex < currentList.length - 1) { stopAllAudio(); currentIndex++; updateCard(); }
     }
     function prev() {
-        if (currentIndex > 0) { currentIndex--; updateCard(); }
+        if (currentIndex > 0) { stopAllAudio(); currentIndex--; updateCard(); }
     }
 
     document.addEventListener('keydown', (e) => {
@@ -370,12 +483,74 @@
         }
     });
 
-    function speak() {
+    function stopAllAudio() {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        if (activeAudio) { activeAudio.pause(); activeAudio = null; }
+    }
+
+    async function speak() {
         if (!currentVoice) return;
+        stopAllAudio();
+
+        if (USE_VOICEVOX) {
+            const ok = await speakWithVoicevox(currentVoice);
+            if (ok) return;
+            console.warn('VOICEVOXでの再生に失敗したため、端末音声にフォールバックします');
+        }
+        speakWithBrowser(currentVoice);
+    }
+
+    // VOICEVOX（api.tts.quest 経由）で読み上げる。成功したら true、
+    // 失敗・タイムアウトの場合は false を返す（呼び出し側でフォールバック判定に使う）。
+    async function speakWithVoicevox(text) {
+        try {
+            let url = voicevoxUrlCache.get(text);
+            if (!url) {
+                const params = new URLSearchParams({ speaker: VOICEVOX_SPEAKER_ID, text });
+                if (VOICEVOX_API_KEY) params.set('key', VOICEVOX_API_KEY);
+
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), VOICEVOX_TIMEOUT_MS);
+                let res;
+                try {
+                    res = await fetch(`https://api.tts.quest/v3/voicevox/synthesis?${params.toString()}`, { signal: controller.signal });
+                } finally {
+                    clearTimeout(timer);
+                }
+                if (!res.ok) return false;
+
+                const data = await res.json();
+                if (!data.success || !data.mp3StreamingUrl) return false;
+
+                url = data.mp3StreamingUrl;
+                voicevoxUrlCache.set(text, url);
+            }
+
+            await new Promise((resolve, reject) => {
+                const audio = new Audio(url);
+                activeAudio = audio;
+                audio.addEventListener('canplay', resolve, { once: true });
+                audio.addEventListener('error', () => reject(new Error('VOICEVOX audio load error')), { once: true });
+                audio.play().catch(reject);
+            });
+            return true;
+
+        } catch (e) {
+            console.warn('VOICEVOX読み上げエラー:', e);
+            return false;
+        }
+    }
+
+    // 端末組み込みの音声合成（Web Speech API）で読み上げる。VOICEVOXが使えない
+    // 環境や、応答がない場合のフォールバックとして使用する。
+    function speakWithBrowser(text) {
+        if (!('speechSynthesis' in window)) return;
         window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(currentVoice);
+        const u = new SpeechSynthesisUtterance(text);
         u.lang = 'ja-JP';
         u.rate = 0.9;
+        const voice = pickBestJapaneseVoice();
+        if (voice) u.voice = voice;
         window.speechSynthesis.speak(u);
     }
 
@@ -480,16 +655,27 @@
 
     let convIndex = 0;
     let convShowEn = false;
+    let stageTabsBuilt = false; // 修正点: タブDOMを毎回作り直さないためのフラグ
 
+    // 修正点: 従来は画面切替のたびに全タブ(6個のボタン)をinnerHTMLで作り直していた。
+    // 初回だけ生成し、以降は active クラスの付け替えのみ行うよう分離（軽量化）。
     function renderStageTabs() {
         const wrap = document.getElementById('stage-tabs');
         wrap.innerHTML = '';
         conversations.forEach((c, i) => {
             const btn = document.createElement('button');
-            btn.className = 'stage-tab' + (i === convIndex ? ' active' : '');
+            btn.className = 'stage-tab';
             btn.innerHTML = `<span class="stage-num">${i + 1}</span>${c.stage.replace(/^[①-⑥]\s*/, '')}`;
             btn.onclick = () => { convIndex = i; renderConv(); };
             wrap.appendChild(btn);
+        });
+        stageTabsBuilt = true;
+        updateStageTabsActive();
+    }
+
+    function updateStageTabsActive() {
+        document.querySelectorAll('#stage-tabs .stage-tab').forEach((btn, i) => {
+            btn.classList.toggle('active', i === convIndex);
         });
     }
 
@@ -519,7 +705,7 @@
         document.getElementById('btn-conv-prev').disabled = convIndex === 0;
         document.getElementById('btn-conv-next').disabled = convIndex === conversations.length - 1;
 
-        renderStageTabs();
+        if (!stageTabsBuilt) renderStageTabs(); else updateStageTabsActive();
     }
 
     function toggleConvEn() {
